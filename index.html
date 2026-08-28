@@ -347,8 +347,12 @@ function applyFilter() {
       list?.classList.toggle("hidden", !hasVisible);
     });
     sectionEl.classList.toggle("hidden", !sectionHas);
-    document.querySelector(`nav a[data-reg="${sectionEl.dataset.reg}"]`)
-      ?.classList.toggle("hidden", !sectionHas);
+    const navLink = document.querySelector(`nav a[data-reg="${sectionEl.dataset.reg}"]`);
+    if (navLink) {
+      navLink.classList.toggle("hidden", !sectionHas);
+      navLink.querySelector(".n").textContent =
+        sectionEl.querySelectorAll(".entry:not(.hidden)").length;
+    }
     anyShown = anyShown || sectionHas;
   }
   $("empty").classList.toggle("hidden", anyShown);
