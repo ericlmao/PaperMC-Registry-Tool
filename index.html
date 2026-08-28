@@ -84,7 +84,12 @@
   }
   .chips { display: grid; grid-template-columns: repeat(auto-fill, minmax(430px, 1fr)); gap: 4px 16px; }
   .chips.compact { display: flex; flex-wrap: wrap; gap: 6px; }
-  .entry { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+  .entry {
+    display: flex; align-items: baseline; gap: 10px; min-width: 0;
+    padding: 3px 0;
+    border-bottom: 1px solid rgba(42,49,64,.45);
+  }
+  .compact .entry { padding: 0; border-bottom: none; }
   .desc {
     color: var(--muted); font-size: 12px;
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
@@ -169,11 +174,15 @@
 const DEFAULT_VERSION = "26.2"; // latest Minecraft version
 let manifest = [];
 let current = null;
+let descriptions = {}; // registry id -> tag key -> prose description
 
 const $ = id => document.getElementById(id);
 
 async function init() {
-  manifest = await (await fetch("data/versions.json")).json();
+  [manifest, descriptions] = await Promise.all([
+    fetch("data/versions.json").then(r => r.json()),
+    fetch("data/descriptions.json").then(r => r.ok ? r.json() : {}).catch(() => ({})),
+  ]);
   const sel = $("version");
   for (const v of manifest) {
     const opt = document.createElement("option");
@@ -224,20 +233,23 @@ function prettyName(key) {
 }
 
 function describe(key, isTag, reg) {
-  if (!isTag) return prettyName(key);
+  if (!isTag) return { text: prettyName(key), tip: prettyName(key) };
+  const text = descriptions[reg.id]?.[key] ?? prettyName(key);
   const values = reg.tagValues?.[key];
-  if (!values) return `${prettyName(key)} — no default vanilla entries (data pack defined)`;
-  if (!values.length) return `${prettyName(key)} — empty tag`;
-  const list = values.map(v => v.replace(/^(#?)minecraft:/, "$1")).join(", ");
-  return `${prettyName(key)} — ${values.length} ${values.length === 1 ? "entry" : "entries"}: ${list}`;
+  let tip = text;
+  if (values?.length) {
+    const list = values.map(v => v.replace(/^(#?)minecraft:/, "$1")).join(", ");
+    tip += `\n\nContains ${values.length} ${values.length === 1 ? "entry" : "entries"} in ${current.version}: ${list}`;
+  }
+  return { text, tip };
 }
 
 function chipHtml(key, isTag, reg) {
   const text = isTag ? "#" + key : key;
-  const desc = describe(key, isTag, reg);
-  return `<div class="entry" data-s="${(text + " " + desc).toLowerCase()}">` +
+  const d = describe(key, isTag, reg);
+  return `<div class="entry" data-s="${(text + " " + d.tip).toLowerCase().replaceAll('"', "")}">` +
     `<button class="chip${isTag ? " tag" : ""}" data-k="${text}" title="Click to copy">${text}</button>` +
-    `<span class="desc" title="${desc}">${desc}</span></div>`;
+    `<span class="desc" title="${d.tip.replaceAll('"', "&quot;")}">${d.text}</span></div>`;
 }
 
 function render() {
