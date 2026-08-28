@@ -27,6 +27,8 @@ python3 scripts/fetch_data.py
 
 This refetches the generated key classes (`paper-api/src/generated/java/io/papermc/paper/registry/keys/**`) from every branch listed in `VERSIONS` at the top of the script and rewrites `data/*.json`. To add a new Minecraft version, add its `(version, branch)` pair to that list and rerun.
 
+Tag descriptions (the entries each vanilla tag contains, per version) come from [misode/mcmeta](https://github.com/misode/mcmeta)'s `<version>-data` git tags, which mirror the vanilla data pack for each Minecraft version.
+
 ## Deploying to GitHub Pages
 
 1. Push this repo to GitHub.

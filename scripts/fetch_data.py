@@ -7,7 +7,9 @@ Writes: data/<version>.json and data/versions.json
 """
 import json
 import re
+import shutil
 import subprocess
+import tempfile
 import urllib.parse
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -30,6 +32,16 @@ VERSIONS = [
 KEY_RE = re.compile(r'create\(\s*key\("([^"]+)"\)')
 
 OUT_DIR = Path(__file__).resolve().parent.parent / "data"
+
+# vanilla datapack tag directory -> Paper registry id (identity for unlisted dirs)
+TAG_DIR_TO_REGISTRY = {
+    "item": "item_type",
+    "block": "block_type",
+    "point_of_interest_type": "poi_type",
+    "potion": "potion_type",
+    "worldgen/biome": "biome",
+    "worldgen/structure": "structure",
+}
 
 
 def get(url: str) -> bytes:
@@ -69,6 +81,46 @@ def parse_keys(source: str) -> list[str]:
     return sorted(set(keys))
 
 
+def fetch_tag_values(version: str) -> dict[str, dict[str, list[str]]]:
+    """Vanilla tag contents per registry from misode/mcmeta's <version>-data tag.
+
+    Returns {registry_id: {"minecraft:tag_name": [entry, ...]}}.
+    """
+    tmp = tempfile.mkdtemp(prefix="mcmeta-")
+    try:
+        subprocess.run(
+            ["git", "clone", "--quiet", "--depth", "1", "--branch", f"{version}-data",
+             "--filter=blob:none", "--sparse", "https://github.com/misode/mcmeta.git", tmp],
+            check=True,
+        )
+        subprocess.run(
+            ["git", "-C", tmp, "sparse-checkout", "set", "data/minecraft/tags"],
+            check=True, capture_output=True,
+        )
+        base = Path(tmp) / "data/minecraft/tags"
+        result: dict[str, dict[str, list[str]]] = {}
+        if not base.is_dir():
+            return result
+        for f in sorted(base.rglob("*.json")):
+            parts = f.relative_to(base).parts
+            # worldgen tags nest one level deeper: tags/worldgen/biome/<name>.json
+            if parts[0] == "worldgen":
+                tag_dir, name_parts = "/".join(parts[:2]), parts[2:]
+            else:
+                tag_dir, name_parts = parts[0], parts[1:]
+            registry = TAG_DIR_TO_REGISTRY.get(tag_dir, tag_dir)
+            tag_key = "minecraft:" + "/".join(name_parts)[: -len(".json")]
+            values = []
+            for v in json.loads(f.read_text()).get("values", []):
+                if isinstance(v, dict):
+                    v = v["id"]
+                values.append(v)
+            result.setdefault(registry, {})[tag_key] = values
+        return result
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+
+
 def fetch_version(version: str, branch: str) -> dict:
     paths = branch_tree(branch)
     registries: dict[str, dict] = {}
@@ -86,6 +138,11 @@ def fetch_version(version: str, branch: str) -> dict:
                 rid, {"id": rid, "name": registry_name(rid), "keys": [], "tagKeys": []}
             )
             reg["tagKeys" if is_tag else "keys"] = keys
+
+    tag_values = fetch_tag_values(version)
+    for rid, reg in registries.items():
+        vals = tag_values.get(rid, {})
+        reg["tagValues"] = {k: vals[k] for k in reg["tagKeys"] if k in vals}
 
     ordered = sorted(registries.values(), key=lambda r: r["id"])
     return {"version": version, "branch": branch, "registries": ordered}

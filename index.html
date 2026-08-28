@@ -82,7 +82,15 @@
     font-size: 12px; text-transform: uppercase; letter-spacing: .06em;
     color: var(--muted); margin: 14px 0 8px;
   }
-  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chips { display: grid; grid-template-columns: repeat(auto-fill, minmax(430px, 1fr)); gap: 4px 16px; }
+  .chips.compact { display: flex; flex-wrap: wrap; gap: 6px; }
+  .entry { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+  .desc {
+    color: var(--muted); font-size: 12px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    flex: 1; min-width: 0;
+  }
+  .compact .desc { display: none; }
   .chip {
     font-family: var(--mono); font-size: 12.5px;
     background: var(--chip-bg);
@@ -140,6 +148,9 @@
     <option value="keys">Keys only</option>
     <option value="tags">Tag Keys only</option>
   </select>
+  <label style="color:var(--muted);font-size:13px;display:flex;align-items:center;gap:5px;cursor:pointer">
+    <input type="checkbox" id="descriptions" checked> Descriptions
+  </label>
   <span id="stats"></span>
 </header>
 <div class="layout">
@@ -185,6 +196,7 @@ async function init() {
   });
   $("search").addEventListener("input", applyFilter);
   $("type").addEventListener("change", applyFilter);
+  $("descriptions").addEventListener("change", applyDescMode);
   loadVersion(sel.value);
 }
 
@@ -196,12 +208,36 @@ async function loadVersion(version) {
   link.href = `https://github.com/PaperMC/Paper/tree/${current.branch}`;
   link.textContent = `PaperMC/Paper @ ${current.branch}`;
   render();
+  applyDescMode();
   applyFilter();
 }
 
-function chipHtml(key, isTag) {
+function applyDescMode() {
+  const on = $("descriptions").checked;
+  document.querySelectorAll(".chips").forEach(el => el.classList.toggle("compact", !on));
+}
+
+function prettyName(key) {
+  return key.split(":").pop().split("/").map(seg =>
+    seg.split("_").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")
+  ).join(" / ");
+}
+
+function describe(key, isTag, reg) {
+  if (!isTag) return prettyName(key);
+  const values = reg.tagValues?.[key];
+  if (!values) return `${prettyName(key)} — no default vanilla entries (data pack defined)`;
+  if (!values.length) return `${prettyName(key)} — empty tag`;
+  const list = values.map(v => v.replace(/^(#?)minecraft:/, "$1")).join(", ");
+  return `${prettyName(key)} — ${values.length} ${values.length === 1 ? "entry" : "entries"}: ${list}`;
+}
+
+function chipHtml(key, isTag, reg) {
   const text = isTag ? "#" + key : key;
-  return `<button class="chip${isTag ? " tag" : ""}" data-k="${text}" title="Click to copy">${text}</button>`;
+  const desc = describe(key, isTag, reg);
+  return `<div class="entry" data-s="${(text + " " + desc).toLowerCase()}">` +
+    `<button class="chip${isTag ? " tag" : ""}" data-k="${text}" title="Click to copy">${text}</button>` +
+    `<span class="desc" title="${desc}">${desc}</span></div>`;
 }
 
 function render() {
@@ -214,10 +250,10 @@ function render() {
     html += `<section class="registry" id="reg-${reg.id}" data-reg="${reg.id}">`;
     html += `<h2>${reg.name} <span class="counts">${reg.keys.length} keys · ${reg.tagKeys.length} tag keys</span></h2>`;
     if (reg.keys.length) {
-      html += `<h3>Keys</h3><div class="chips">` + reg.keys.map(k => chipHtml(k, false)).join("") + `</div>`;
+      html += `<h3>Keys</h3><div class="chips">` + reg.keys.map(k => chipHtml(k, false, reg)).join("") + `</div>`;
     }
     if (reg.tagKeys.length) {
-      html += `<h3>Tag Keys</h3><div class="chips">` + reg.tagKeys.map(k => chipHtml(k, true)).join("") + `</div>`;
+      html += `<h3>Tag Keys</h3><div class="chips">` + reg.tagKeys.map(k => chipHtml(k, true, reg)).join("") + `</div>`;
     }
     html += `</section>`;
   }
@@ -281,20 +317,20 @@ function applyFilter() {
   let shownKeys = 0, shownTags = 0, anyShown = false;
   for (const sectionEl of document.querySelectorAll("section.registry")) {
     let sectionHas = false;
-    for (const chip of sectionEl.querySelectorAll(".chip")) {
-      const isTag = chip.classList.contains("tag");
+    for (const entry of sectionEl.querySelectorAll(".entry")) {
+      const isTag = entry.querySelector(".chip").classList.contains("tag");
       const typeOk = type === "all" || (type === "tags") === isTag;
-      const match = typeOk && (!q || chip.dataset.k.toLowerCase().includes(q));
-      chip.classList.toggle("hidden", !match);
+      const match = typeOk && (!q || entry.dataset.s.includes(q));
+      entry.classList.toggle("hidden", !match);
       if (match) {
         sectionHas = true;
-        chip.classList.contains("tag") ? shownTags++ : shownKeys++;
+        isTag ? shownTags++ : shownKeys++;
       }
     }
-    // hide key/tag group headers whose chip lists are fully filtered out
+    // hide key/tag group headers whose entry lists are fully filtered out
     sectionEl.querySelectorAll("h3").forEach(h => {
       const list = h.nextElementSibling;
-      const hasVisible = list && list.querySelector(".chip:not(.hidden)");
+      const hasVisible = list && list.querySelector(".entry:not(.hidden)");
       h.classList.toggle("hidden", !hasVisible);
       list?.classList.toggle("hidden", !hasVisible);
     });
