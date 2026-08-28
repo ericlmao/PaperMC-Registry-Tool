@@ -1,0 +1,42 @@
+[
+  {
+    "version": "26.2",
+    "branch": "main",
+    "file": "data/26.2.json"
+  },
+  {
+    "version": "26.1.2",
+    "branch": "ver/26.1.2",
+    "file": "data/26.1.2.json"
+  },
+  {
+    "version": "1.21.11",
+    "branch": "ver/1.21.11",
+    "file": "data/1.21.11.json"
+  },
+  {
+    "version": "1.21.10",
+    "branch": "ver/1.21.10",
+    "file": "data/1.21.10.json"
+  },
+  {
+    "version": "1.21.9",
+    "branch": "ver/1.21.9",
+    "file": "data/1.21.9.json"
+  },
+  {
+    "version": "1.21.8",
+    "branch": "ver/1.21.8",
+    "file": "data/1.21.8.json"
+  },
+  {
+    "version": "1.21.5",
+    "branch": "ver/1.21.5",
+    "file": "data/1.21.5.json"
+  },
+  {
+    "version": "1.21.4",
+    "branch": "ver/1.21.4",
+    "file": "data/1.21.4.json"
+  }
+]
