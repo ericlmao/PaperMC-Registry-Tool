@@ -105,14 +105,41 @@
   footer a { color: var(--accent); }
   mark { background: #6ea8fe44; color: inherit; border-radius: 3px; padding: 0 1px; }
   @media (max-width: 800px) { nav { display: none; } }
+  #disclaimer {
+    background: #2a2410;
+    border-bottom: 1px solid #4d3f14;
+    color: #e5c558;
+    font-size: 13px;
+    text-align: center;
+    padding: 6px 16px;
+  }
+  #toast {
+    position: fixed; bottom: 24px; left: 50%;
+    transform: translate(-50%, 8px);
+    background: var(--panel-2);
+    border: 1px solid #4cc38a;
+    color: #4cc38a;
+    font-family: var(--mono); font-size: 13px;
+    padding: 8px 14px; border-radius: 8px;
+    opacity: 0; pointer-events: none;
+    transition: opacity .15s, transform .15s;
+    z-index: 20;
+  }
+  #toast.show { opacity: 1; transform: translate(-50%, 0); }
 </style>
 </head>
 <body>
+<div id="disclaimer">⚠️ This is a vibe-coded / AI-generated website (obviously). Data comes straight from PaperMC source, but double-check anything important.</div>
 <header>
   <h1><span>Paper</span> Registry Keys</h1>
   <label for="version" style="color:var(--muted);font-size:13px">Version</label>
   <select id="version" aria-label="Minecraft version"></select>
   <input id="search" type="search" placeholder="Filter keys… e.g. diamond_sword or #swords" aria-label="Filter keys">
+  <select id="type" aria-label="Key type filter">
+    <option value="all">Keys + Tag Keys</option>
+    <option value="keys">Keys only</option>
+    <option value="tags">Tag Keys only</option>
+  </select>
   <span id="stats"></span>
 </header>
 <div class="layout">
@@ -126,6 +153,7 @@
   Keys and tag keys generated from the <a id="branch-link" href="https://github.com/PaperMC/Paper" target="_blank" rel="noopener">PaperMC/Paper</a>
   source (paper-api generated registry key classes), per-version branch. Click any key to copy it.
 </footer>
+<div id="toast" role="status"></div>
 <script>
 const DEFAULT_VERSION = "26.2"; // latest Minecraft version
 let manifest = [];
@@ -156,6 +184,7 @@ async function init() {
     }
   });
   $("search").addEventListener("input", applyFilter);
+  $("type").addEventListener("change", applyFilter);
   loadVersion(sel.value);
 }
 
@@ -202,10 +231,10 @@ function render() {
   content.addEventListener("click", e => {
     const chip = e.target.closest(".chip");
     if (!chip) return;
-    navigator.clipboard.writeText(chip.dataset.k).then(() => {
-      chip.classList.add("copied");
-      setTimeout(() => chip.classList.remove("copied"), 700);
-    });
+    copyText(chip.dataset.k);
+    chip.classList.add("copied");
+    setTimeout(() => chip.classList.remove("copied"), 700);
+    showToast(`Copied ${chip.dataset.k}`);
   });
   updateStats(
     current.registries.reduce((s, r) => s + r.keys.length, 0),
@@ -217,13 +246,45 @@ function updateStats(keys, tags) {
   $("stats").textContent = `${keys.toLocaleString()} keys · ${tags.toLocaleString()} tag keys`;
 }
 
+function copyText(text) {
+  if (navigator.clipboard?.writeText) {
+    navigator.clipboard.writeText(text).catch(() => copyFallback(text));
+  } else {
+    // clipboard API needs a secure context; execCommand covers plain http
+    copyFallback(text);
+  }
+}
+
+function copyFallback(text) {
+  const ta = document.createElement("textarea");
+  ta.value = text;
+  ta.style.position = "fixed";
+  ta.style.opacity = "0";
+  document.body.appendChild(ta);
+  ta.select();
+  document.execCommand("copy");
+  ta.remove();
+}
+
+let toastTimer;
+function showToast(msg) {
+  const t = $("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove("show"), 1400);
+}
+
 function applyFilter() {
   const q = $("search").value.trim().toLowerCase();
+  const type = $("type").value;
   let shownKeys = 0, shownTags = 0, anyShown = false;
   for (const sectionEl of document.querySelectorAll("section.registry")) {
     let sectionHas = false;
     for (const chip of sectionEl.querySelectorAll(".chip")) {
-      const match = !q || chip.dataset.k.toLowerCase().includes(q);
+      const isTag = chip.classList.contains("tag");
+      const typeOk = type === "all" || (type === "tags") === isTag;
+      const match = typeOk && (!q || chip.dataset.k.toLowerCase().includes(q));
       chip.classList.toggle("hidden", !match);
       if (match) {
         sectionHas = true;
