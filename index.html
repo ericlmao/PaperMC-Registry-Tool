@@ -3,180 +3,296 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark light">
 <title>Paper Registry Keys</title>
 <style>
   :root {
-    --bg: #0f1115;
-    --panel: #161a21;
-    --panel-2: #1c212b;
-    --border: #2a3140;
-    --text: #e6e9ef;
-    --muted: #8b93a5;
-    --accent: #6ea8fe;
-    --tag: #f0b866;
-    --chip-bg: #1b2029;
-    --chip-hover: #242c3a;
-    --mono: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+    --bg: #0b0c0f;
+    --bg-2: #111318;
+    --hover: #181b22;
+    --border: #22262f;
+    --border-2: #2e333e;
+    --text: #e4e6eb;
+    --muted: #8a8f9b;
+    --faint: #5c616d;
+    --accent: #8b93ff;
+    --accent-bg: rgba(139,147,255,.12);
+    --ok: #4cc38a;
+    --mono: ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", Menlo, Consolas, monospace;
+    --bar: 56px;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #ffffff;
+      --bg-2: #f7f7f9;
+      --hover: #f0f1f4;
+      --border: #e6e7eb;
+      --border-2: #d6d8de;
+      --text: #1b1d22;
+      --muted: #676c78;
+      --faint: #9a9ea8;
+      --accent: #4b55d6;
+      --accent-bg: rgba(75,85,214,.09);
+      --ok: #1f9d63;
+    }
   }
   * { box-sizing: border-box; }
-  html { scroll-behavior: smooth; }
   body {
-    margin: 0;
-    background: var(--bg);
-    color: var(--text);
-    font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 14px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
   }
-  header {
-    position: sticky; top: 0; z-index: 10;
-    background: rgba(15,17,21,.92);
-    backdrop-filter: blur(8px);
+  button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+  a { color: inherit; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+  svg { flex-shrink: 0; }
+
+  /* top bar */
+  .bar {
+    position: sticky; top: 0; z-index: 20; height: var(--bar);
+    display: flex; align-items: center; gap: 16px; padding: 0 20px;
+    background: color-mix(in srgb, var(--bg) 85%, transparent);
+    backdrop-filter: blur(10px);
     border-bottom: 1px solid var(--border);
-    padding: 12px 20px;
-    display: flex; flex-wrap: wrap; gap: 12px; align-items: center;
   }
-  header h1 { font-size: 17px; margin: 0 12px 0 0; font-weight: 650; }
-  header h1 span { color: var(--accent); }
-  select, input[type="search"] {
-    background: var(--panel-2);
-    color: var(--text);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 7px 10px;
-    font-size: 14px;
-    outline: none;
+  .brand { font-weight: 600; font-size: 14px; white-space: nowrap; width: 220px; letter-spacing: -.01em; }
+  .brand span { color: var(--accent); }
+  .search { flex: 1; max-width: 560px; position: relative; display: flex; align-items: center; }
+  .search svg { position: absolute; left: 11px; color: var(--faint); pointer-events: none; }
+  .search input {
+    width: 100%; height: 36px; padding: 0 36px 0 34px;
+    background: var(--bg-2); color: var(--text);
+    border: 1px solid var(--border); border-radius: 8px;
+    font: inherit; outline: none; transition: border-color .12s, box-shadow .12s;
   }
-  select:focus, input[type="search"]:focus { border-color: var(--accent); }
-  select { cursor: pointer; font-weight: 600; }
-  input[type="search"] { flex: 1; min-width: 180px; max-width: 420px; font-family: var(--mono); }
-  #stats { color: var(--muted); font-size: 13px; margin-left: auto; white-space: nowrap; }
-  .layout { display: flex; max-width: 1400px; margin: 0 auto; }
-  nav {
-    position: sticky; top: 61px;
-    align-self: flex-start;
-    width: 250px; flex-shrink: 0;
-    max-height: calc(100vh - 61px);
-    overflow-y: auto;
-    padding: 16px 8px 40px 16px;
+  .search input::placeholder { color: var(--faint); }
+  .search input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-bg); }
+  .search input::-webkit-search-cancel-button { display: none; }
+  .search kbd {
+    position: absolute; right: 9px; font: 11px var(--mono); color: var(--faint);
+    border: 1px solid var(--border-2); border-radius: 4px; padding: 0 5px; line-height: 17px;
   }
-  nav a {
-    display: flex; justify-content: space-between; gap: 8px;
-    color: var(--muted); text-decoration: none;
-    padding: 5px 10px; border-radius: 6px; font-size: 13.5px;
+  .search input:focus ~ kbd, .search input:not(:placeholder-shown) ~ kbd { display: none; }
+  select {
+    appearance: none; height: 36px; padding: 0 30px 0 12px; margin-left: auto;
+    background: var(--bg-2) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none' stroke='%238a8f9b' stroke-width='1.5'%3E%3Cpath d='M1 1l4 4 4-4'/%3E%3C/svg%3E") no-repeat right 11px center;
+    color: var(--text); border: 1px solid var(--border); border-radius: 8px;
+    font: 500 13px var(--mono); cursor: pointer; outline: none;
   }
-  nav a:hover { background: var(--panel-2); color: var(--text); }
-  nav a .n { color: var(--muted); font-size: 12px; font-family: var(--mono); }
-  main { flex: 1; min-width: 0; padding: 20px 20px 80px; }
-  section.registry {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 16px 18px;
-    margin-bottom: 18px;
+  select:hover { border-color: var(--border-2); }
+  select:focus-visible { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-bg); outline: none; }
+  #menu { display: none; padding: 6px; margin-left: -6px; border-radius: 6px; color: var(--muted); }
+  #menu:hover { color: var(--text); background: var(--hover); }
+
+  /* sidebar */
+  .layout { display: flex; }
+  aside {
+    position: sticky; top: var(--bar); align-self: flex-start;
+    width: 256px; flex-shrink: 0; height: calc(100vh - var(--bar)); overflow-y: auto;
+    padding: 16px 12px 32px; border-right: 1px solid var(--border);
   }
-  section.registry h2 {
-    margin: 0 0 4px; font-size: 17px;
-    display: flex; align-items: baseline; gap: 10px;
+  .nav-h, aside summary {
+    font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em;
+    color: var(--faint); padding: 8px 10px 6px;
   }
-  section.registry h2 .counts { color: var(--muted); font-size: 12.5px; font-weight: 400; }
-  h3 {
-    font-size: 12px; text-transform: uppercase; letter-spacing: .06em;
-    color: var(--muted); margin: 14px 0 8px;
+  aside summary { cursor: pointer; list-style: none; display: flex; align-items: center; gap: 6px; margin-top: 12px; border-radius: 6px; }
+  aside summary::-webkit-details-marker { display: none; }
+  aside summary:hover { color: var(--muted); }
+  aside summary svg { transition: transform .15s; }
+  details[open] > summary svg { transform: rotate(90deg); }
+  aside a {
+    display: flex; justify-content: space-between; align-items: center; gap: 8px;
+    padding: 5px 10px; margin: 1px 0; border-radius: 6px;
+    color: var(--muted); text-decoration: none; font-size: 13.5px;
   }
-  .chips { display: grid; grid-template-columns: 1fr; gap: 4px; }
-  .chips.compact { display: flex; flex-wrap: wrap; gap: 6px; }
-  .entry {
-    display: flex; align-items: baseline; gap: 10px; min-width: 0;
-    padding: 3px 0;
-    border-bottom: 1px solid rgba(42,49,64,.45);
+  aside a:hover { background: var(--hover); color: var(--text); }
+  aside a.active { background: var(--accent-bg); color: var(--text); font-weight: 500; }
+  aside a.active .n { color: var(--accent); }
+  aside a.none { opacity: .4; }
+  aside .n { font: 11.5px var(--mono); color: var(--faint); }
+  .scrim { display: none; }
+
+  /* main */
+  main { flex: 1; min-width: 0; padding: 32px 40px 0; max-width: 1240px; display: flex; flex-direction: column; min-height: calc(100vh - var(--bar)); }
+  #content { flex: 1; }
+  .head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; }
+  h1 { font-size: 22px; font-weight: 600; letter-spacing: -.02em; margin: 0 0 2px; }
+  .sub { color: var(--muted); font-size: 13px; }
+  .sub code { font-family: var(--mono); font-size: 12px; }
+  .seg { display: inline-flex; padding: 3px; gap: 2px; background: var(--bg-2); border: 1px solid var(--border); border-radius: 8px; }
+  .seg button { padding: 4px 12px; border-radius: 6px; font-size: 13px; color: var(--muted); }
+  .seg button:hover:not(:disabled) { color: var(--text); }
+  .seg button[aria-pressed="true"] { background: var(--hover); color: var(--text); box-shadow: 0 0 0 1px var(--border-2); }
+  .seg button:disabled { opacity: .4; cursor: default; }
+  .seg .c { font: 11.5px var(--mono); color: var(--faint); margin-left: 4px; }
+  .filter {
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    padding: 8px 12px; margin-bottom: 16px; font-size: 13px; color: var(--muted);
+    border: 1px solid var(--border); border-radius: 8px; background: var(--bg-2);
   }
-  .compact .entry { padding: 0; border-bottom: none; }
-  .desc {
-    color: var(--muted); font-size: 12px;
-    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-    flex: 1; min-width: 0;
+  .filter b { color: var(--text); font-weight: 500; }
+  .link { color: var(--accent); font-size: 13px; }
+  .link:hover { text-decoration: underline; }
+
+  .keys { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 2px 8px; }
+  .key {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px; text-align: left;
+    padding: 5px 8px; border-radius: 6px; font: 13px/1.45 var(--mono); overflow-wrap: anywhere; min-width: 0;
   }
-  .compact .desc { display: none; }
+  .key:hover { background: var(--hover); }
+  .key svg, .tag-name svg { opacity: 0; color: var(--faint); transition: opacity .1s; }
+  .key:hover svg, .key:focus-visible svg, .tag-name:hover svg, .tag-name:focus-visible svg { opacity: 1; }
+  .copied, .copied svg { color: var(--ok) !important; }
+
+  .tags { border-top: 1px solid var(--border); }
+  .tag { border-bottom: 1px solid var(--border); }
+  .tag-row { display: flex; align-items: center; gap: 10px; padding: 7px 4px; cursor: pointer; min-width: 0; }
+  .tag-row:hover { background: var(--bg-2); }
+  .exp { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 5px; color: var(--faint); }
+  .exp:hover { background: var(--hover); color: var(--text); }
+  .exp svg { transition: transform .15s; }
+  .tag.open .exp svg { transform: rotate(90deg); }
+  .tag-name {
+    display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; width: 280px; max-width: 45%;
+    font: 13px var(--mono); color: var(--accent); padding: 2px 6px; margin-left: -6px; border-radius: 5px; overflow-wrap: anywhere; text-align: left;
+  }
+  .tag-name:hover { background: var(--accent-bg); }
+  .desc { flex: 1; min-width: 0; color: var(--muted); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .badge { font: 11.5px var(--mono); color: var(--muted); background: var(--bg-2); border: 1px solid var(--border); border-radius: 999px; padding: 0 8px; flex-shrink: 0; }
+  .tag-body { display: none; padding: 2px 4px 12px 36px; }
+  .tag.open .tag-body { display: block; }
+  .tag-body .full, .tag-body .note { color: var(--muted); font-size: 13px; margin: 0 0 8px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 4px; }
   .chip {
-    font-family: var(--mono); font-size: 12.5px;
-    background: var(--chip-bg);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 3px 8px;
-    cursor: pointer;
-    color: var(--text);
-    transition: background .1s;
+    font: 12px var(--mono); padding: 2px 8px; border-radius: 5px;
+    background: var(--bg-2); border: 1px solid var(--border);
   }
-  .chip:hover { background: var(--chip-hover); border-color: var(--accent); }
-  .chip.tag { color: var(--tag); }
-  .chip.copied { border-color: #4cc38a; color: #4cc38a; }
-  .hidden { display: none !important; }
-  #empty { color: var(--muted); text-align: center; padding: 60px 0; }
-  footer {
-    color: var(--muted); font-size: 13px; text-align: center;
-    padding: 24px; border-top: 1px solid var(--border);
-  }
-  footer a { color: var(--accent); }
-  mark { background: #6ea8fe44; color: inherit; border-radius: 3px; padding: 0 1px; }
-  @media (max-width: 800px) { nav { display: none; } }
-  #disclaimer {
-    background: #2a2410;
-    border-bottom: 1px solid #4d3f14;
-    color: #e5c558;
-    font-size: 13px;
-    text-align: center;
-    padding: 6px 16px;
-  }
+  .chip:hover { border-color: var(--border-2); background: var(--hover); }
+  .chip.t { color: var(--accent); border-style: dashed; }
+
+  .results-h { color: var(--muted); font-size: 13px; margin: 0 0 24px; }
+  .group { margin-bottom: 32px; }
+  .group-h { display: flex; align-items: baseline; gap: 10px; margin: 0 0 8px; font-size: 14px; font-weight: 600; }
+  .group-h a { text-decoration: none; }
+  .group-h a:hover { color: var(--accent); }
+  .group-h .n { font: 12px var(--mono); color: var(--faint); font-weight: 400; }
+  .group .tags { margin-top: 8px; }
+  .more { margin-top: 8px; padding: 4px 8px; margin-left: -8px; border-radius: 6px; }
+  .more:hover { background: var(--accent-bg); text-decoration: none; }
+  .empty { color: var(--muted); text-align: center; padding: 80px 20px; }
+  .empty b { display: block; color: var(--text); font-size: 15px; font-weight: 500; margin-bottom: 4px; }
+  mark { background: var(--accent-bg); color: var(--accent); border-radius: 2px; }
+
+  footer { color: var(--faint); font-size: 12px; padding: 40px 0 24px; margin-top: 40px; border-top: 1px solid var(--border); }
+  footer a { color: var(--muted); }
+  footer a:hover { color: var(--text); }
+
   #toast {
-    position: fixed; bottom: 24px; left: 50%;
-    transform: translate(-50%, 8px);
-    background: var(--panel-2);
-    border: 1px solid #4cc38a;
-    color: #4cc38a;
-    font-family: var(--mono); font-size: 13px;
-    padding: 8px 14px; border-radius: 8px;
-    opacity: 0; pointer-events: none;
-    transition: opacity .15s, transform .15s;
-    z-index: 20;
+    position: fixed; bottom: 24px; left: 50%; transform: translate(-50%, 10px); z-index: 40;
+    display: flex; align-items: center; gap: 8px; max-width: calc(100vw - 32px);
+    background: var(--text); color: var(--bg); font-size: 13px;
+    padding: 7px 14px; border-radius: 999px; box-shadow: 0 8px 24px rgba(0,0,0,.25);
+    opacity: 0; pointer-events: none; transition: opacity .15s, transform .15s;
   }
+  #toast code { font: 12.5px var(--mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   #toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+  @media (max-width: 800px) {
+    .bar { padding: 0 12px; gap: 10px; }
+    .brand { display: none; }
+    #menu { display: grid; }
+    .search kbd { display: none; }
+    select { padding-right: 26px; background-position: right 9px center; }
+    aside {
+      position: fixed; z-index: 30; top: 0; left: 0; height: 100vh; width: 280px; max-width: 85vw;
+      background: var(--bg); transform: translateX(-100%); transition: transform .2s;
+    }
+    aside.open { transform: none; box-shadow: 0 0 40px rgba(0,0,0,.4); }
+    .scrim.open { display: block; position: fixed; inset: 0; z-index: 25; background: rgba(0,0,0,.45); }
+    main { padding: 20px 16px 0; }
+    .tag-name { width: auto; max-width: none; flex: 1; }
+    .desc { display: none; }
+    .tag-body { padding-left: 8px; }
+    .tag-body .full { display: block; }
+  }
+  @media (min-width: 801px) { .tag-body .full { display: none; } }
 </style>
 </head>
 <body>
-<div id="disclaimer">⚠️ This is a vibe-coded / AI-generated website (obviously). Data comes straight from PaperMC source, but double-check anything important.</div>
-<header>
-  <h1><span>Paper</span> Registry Keys</h1>
-  <label for="version" style="color:var(--muted);font-size:13px">Version</label>
-  <select id="version" aria-label="Minecraft version"></select>
-  <input id="search" type="search" placeholder="Filter keys… e.g. diamond_sword or #swords" aria-label="Filter keys">
-  <select id="type" aria-label="Key type filter">
-    <option value="all">Keys + Tag Keys</option>
-    <option value="keys">Keys only</option>
-    <option value="tags">Tag Keys only</option>
-  </select>
-  <label style="color:var(--muted);font-size:13px;display:flex;align-items:center;gap:5px;cursor:pointer">
-    <input type="checkbox" id="descriptions" checked> Descriptions
+<header class="bar">
+  <button id="menu" aria-label="Show registries" aria-controls="nav" aria-expanded="false">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+  </button>
+  <div class="brand"><span>Paper</span> Registry Keys</div>
+  <label class="search">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <input id="search" type="search" placeholder="Search keys and tags…" aria-label="Search keys and tags" autocomplete="off" spellcheck="false">
+    <kbd>/</kbd>
   </label>
-  <span id="stats"></span>
+  <select id="version" aria-label="Minecraft version"></select>
 </header>
 <div class="layout">
-  <nav id="nav" aria-label="Registries"></nav>
+  <aside id="nav" aria-label="Registries"></aside>
+  <div class="scrim" id="scrim"></div>
   <main>
-    <div id="content"></div>
-    <p id="empty" class="hidden">No keys match your filter.</p>
+    <div id="content"><p class="empty">Loading…</p></div>
+    <footer>
+      Generated from <a id="branch-link" href="https://github.com/PaperMC/Paper" target="_blank" rel="noopener">PaperMC/Paper</a>
+      registry key classes. This site is AI-generated; the data comes straight from PaperMC source, but double-check anything important.
+    </footer>
   </main>
 </div>
-<footer>
-  Keys and tag keys generated from the <a id="branch-link" href="https://github.com/PaperMC/Paper" target="_blank" rel="noopener">PaperMC/Paper</a>
-  source (paper-api generated registry key classes), per-version branch. Click any key to copy it.
-</footer>
-<div id="toast" role="status"></div>
+<div id="toast" role="status" aria-live="polite"></div>
 <script>
-const DEFAULT_VERSION = "26.2"; // latest Minecraft version
-let manifest = [];
-let current = null;
-let descriptions = {}; // registry id -> tag key -> prose description
-
 const $ = id => document.getElementById(id);
+const GROUP_CAP = 24;
+const isVariant = id => /_(variant|archetype)$/.test(id) && id !== "painting_variant";
+const ICON = {
+  copy: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>`,
+  chev: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="m9 6 6 6-6 6"/></svg>`,
+  check: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12l5 5L20 7"/></svg>`,
+};
+
+let manifest = [];
+let descriptions = {}; // registry id -> tag key -> prose description
+let current = null;    // loaded version data
+const cache = new Map();
+const state = { reg: null, view: null, q: "", scoped: false, open: new Set() };
+
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+const short = k => k.replace(/^(#?)minecraft:/, "$1");
+const plural = (n, one, many = one + "s") => `${n.toLocaleString()} ${n === 1 ? one : many}`;
+const findReg = id => current.registries.find(r => r.id === id);
+// soft line-break opportunities after _ / . in already-escaped html (skipping markup)
+const brk = html => html.replace(/([_\/.])(?![^<]*>)/g, "$1<wbr>");
+
+// escape text and wrap every occurrence of q in <mark>
+function hl(text, q) {
+  if (!q) return esc(text);
+  const lower = text.toLowerCase();
+  let out = "", i = 0, j;
+  while ((j = lower.indexOf(q, i)) !== -1) {
+    out += esc(text.slice(i, j)) + `<mark>${esc(text.slice(j, j + q.length))}</mark>`;
+    i = j + q.length;
+  }
+  return out + esc(text.slice(i));
+}
+
+function query() {
+  let q = state.q.toLowerCase();
+  const tagsOnly = q.startsWith("#");
+  if (tagsOnly) q = q.slice(1);
+  return { q, tagsOnly, hq: q.replace(/^minecraft:/, "") };
+}
+
+function matches(reg, m) {
+  if (!state.q) return { keys: reg.keys, tags: reg.tagKeys };
+  const desc = descriptions[reg.id] || {};
+  return {
+    keys: m.tagsOnly ? [] : reg.keys.filter(k => k.includes(m.q)),
+    tags: reg.tagKeys.filter(t => t.includes(m.q) || (desc[t] || "").toLowerCase().includes(m.q)),
+  };
+}
 
 async function init() {
   [manifest, descriptions] = await Promise.all([
@@ -184,114 +300,238 @@ async function init() {
     fetch("data/descriptions.json").then(r => r.ok ? r.json() : {}).catch(() => ({})),
   ]);
   const sel = $("version");
-  for (const v of manifest) {
-    const opt = document.createElement("option");
-    opt.value = v.version;
-    opt.textContent = v.version + (v.version === DEFAULT_VERSION ? " (latest)" : "");
-    sel.appendChild(opt);
-  }
-  const fromHash = decodeURIComponent(location.hash.slice(1));
-  sel.value = manifest.some(v => v.version === fromHash) ? fromHash : DEFAULT_VERSION;
-  sel.addEventListener("change", () => {
-    location.hash = sel.value;
-    loadVersion(sel.value);
+  sel.innerHTML = manifest.map((v, i) =>
+    `<option value="${esc(v.version)}">${esc(v.version)}${i === 0 ? " (latest)" : ""}</option>`).join("");
+  sel.addEventListener("change", () => navigate(sel.value, state.reg));
+  window.addEventListener("hashchange", route);
+
+  let timer;
+  const search = $("search");
+  search.addEventListener("input", () => {
+    clearTimeout(timer);
+    timer = setTimeout(() => { state.q = search.value.trim(); state.scoped = false; render(); }, 120);
   });
-  window.addEventListener("hashchange", () => {
-    const v = decodeURIComponent(location.hash.slice(1));
-    if (manifest.some(m => m.version === v) && v !== sel.value) {
-      sel.value = v;
-      loadVersion(v);
-    }
+  search.addEventListener("keydown", e => {
+    if (e.key !== "Escape") return;
+    if (search.value) clearSearch(); else search.blur();
   });
-  $("search").addEventListener("input", applyFilter);
-  $("type").addEventListener("change", applyFilter);
-  $("descriptions").addEventListener("change", applyDescMode);
-  loadVersion(sel.value);
+  document.addEventListener("keydown", e => {
+    if (e.key === "/" && !e.metaKey && !e.ctrlKey && !/^(INPUT|SELECT|TEXTAREA)$/.test(document.activeElement.tagName)) {
+      e.preventDefault();
+      search.focus();
+      search.select();
+    } else if (e.key === "Escape") toggleDrawer(false);
+  });
+
+  $("menu").addEventListener("click", () => toggleDrawer(!$("nav").classList.contains("open")));
+  $("scrim").addEventListener("click", () => toggleDrawer(false));
+  $("nav").addEventListener("click", e => {
+    const a = e.target.closest("a[data-reg]");
+    if (!a) return;
+    state.scoped = !!state.q;
+    toggleDrawer(false);
+    if (a.dataset.reg === state.reg) { e.preventDefault(); render(); }
+  });
+  $("content").addEventListener("click", onContentClick);
+  route();
 }
 
-async function loadVersion(version) {
-  const entry = manifest.find(v => v.version === version);
-  current = await (await fetch(entry.file)).json();
-  document.title = `Paper Registry Keys — ${version}`;
-  const link = $("branch-link");
-  link.href = `https://github.com/PaperMC/Paper/tree/${current.branch}`;
-  link.textContent = `PaperMC/Paper @ ${current.branch}`;
+function toggleDrawer(open) {
+  $("nav").classList.toggle("open", open);
+  $("scrim").classList.toggle("open", open);
+  $("menu").setAttribute("aria-expanded", open);
+}
+
+function clearSearch() {
+  $("search").value = state.q = "";
+  state.scoped = false;
   render();
-  applyDescMode();
-  applyFilter();
 }
 
-function applyDescMode() {
-  const on = $("descriptions").checked;
-  document.querySelectorAll(".chips").forEach(el => el.classList.toggle("compact", !on));
+function navigate(version, reg) {
+  const h = `#${version}/${reg}`;
+  if (location.hash === h) render(); else location.hash = h;
 }
 
-function prettyName(key) {
-  return key.split(":").pop().split("/").map(seg =>
-    seg.split("_").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")
-  ).join(" / ");
-}
-
-function describe(key, isTag, reg) {
-  if (!isTag) return { text: prettyName(key), tip: prettyName(key) };
-  const text = descriptions[reg.id]?.[key] ?? prettyName(key);
-  const values = reg.tagValues?.[key];
-  let tip = text;
-  if (values?.length) {
-    const list = values.map(v => v.replace(/^(#?)minecraft:/, "$1")).join(", ");
-    tip += `\n\nContains ${values.length} ${values.length === 1 ? "entry" : "entries"} in ${current.version}: ${list}`;
+// the hash is the source of truth for version + registry
+let routeToken = 0;
+async function route() {
+  const [hv, hr] = decodeURIComponent(location.hash.slice(1)).split("/");
+  const version = manifest.some(m => m.version === hv) ? hv : manifest[0].version;
+  const token = ++routeToken;
+  if (current?.version !== version) {
+    try {
+      const data = cache.get(version) || await fetch(manifest.find(m => m.version === version).file).then(r => r.json());
+      cache.set(version, data);
+      if (token !== routeToken) return;
+      current = data;
+    } catch {
+      $("content").innerHTML = `<p class="empty"><b>Couldn't load ${esc(version)}</b>Check your connection and reload.</p>`;
+      return;
+    }
+    $("version").value = version;
+    const link = $("branch-link");
+    link.href = `https://github.com/PaperMC/Paper/tree/${encodeURI(current.branch)}`;
+    link.textContent = `PaperMC/Paper @ ${current.branch}`;
+    buildNav();
   }
-  return { text, tip };
+  const has = id => id && current.registries.some(r => r.id === id);
+  const reg = [hr, state.reg, "item_type"].find(has) || current.registries[0].id;
+  if (reg !== state.reg) {
+    state.reg = reg;
+    state.view = null;
+    state.open.clear();
+    window.scrollTo(0, 0);
+  }
+  const canon = `#${version}/${reg}`;
+  if (location.hash !== canon) history.replaceState(null, "", canon);
+  render();
 }
 
-function chipHtml(key, isTag, reg) {
-  const text = isTag ? "#" + key : key;
-  const d = describe(key, isTag, reg);
-  return `<div class="entry" data-s="${(text + " " + d.tip).toLowerCase().replaceAll('"', "")}">` +
-    `<button class="chip${isTag ? " tag" : ""}" data-k="${text}" title="Click to copy">${text}</button>` +
-    `<span class="desc" title="${d.tip.replaceAll('"', "&quot;")}">${d.text}</span></div>`;
+function buildNav() {
+  const link = r => `<a href="#${esc(current.version)}/${esc(r.id)}" data-reg="${esc(r.id)}">${esc(r.name)}<span class="n"></span></a>`;
+  const main = current.registries.filter(r => !isVariant(r.id));
+  const variants = current.registries.filter(r => isVariant(r.id));
+  const wasOpen = document.querySelector("#nav details")?.open;
+  $("nav").innerHTML = `<div class="nav-h">Registries</div>${main.map(link).join("")}` +
+    (variants.length ? `<details${wasOpen ? " open" : ""}><summary>${ICON.chev}Mob variants</summary>${variants.map(link).join("")}</details>` : "");
+}
+
+function updateNav(m) {
+  for (const a of $("nav").querySelectorAll("a[data-reg]")) {
+    const reg = findReg(a.dataset.reg);
+    const { keys, tags } = matches(reg, m);
+    const n = keys.length + tags.length;
+    a.querySelector(".n").textContent = n.toLocaleString();
+    a.classList.toggle("none", !!state.q && n === 0);
+    const active = reg.id === state.reg && (!state.q || state.scoped);
+    a.classList.toggle("active", active);
+    if (active) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
+  }
+  const details = $("nav").querySelector("details");
+  if (details && isVariant(state.reg) && (!state.q || state.scoped)) details.open = true;
 }
 
 function render() {
-  const nav = $("nav");
-  const content = $("content");
-  let navHtml = "", html = "";
-  for (const reg of current.registries) {
-    const total = reg.keys.length + reg.tagKeys.length;
-    navHtml += `<a href="#${current.version}/${reg.id}" data-reg="${reg.id}">${reg.name}<span class="n">${total}</span></a>`;
-    html += `<section class="registry" id="reg-${reg.id}" data-reg="${reg.id}">`;
-    html += `<h2>${reg.name} <span class="counts">${reg.keys.length} keys · ${reg.tagKeys.length} tag keys</span></h2>`;
-    if (reg.keys.length) {
-      html += `<h3>Keys</h3><div class="chips">` + reg.keys.map(k => chipHtml(k, false, reg)).join("") + `</div>`;
-    }
-    if (reg.tagKeys.length) {
-      html += `<h3>Tag Keys</h3><div class="chips">` + reg.tagKeys.map(k => chipHtml(k, true, reg)).join("") + `</div>`;
-    }
-    html += `</section>`;
-  }
-  nav.innerHTML = navHtml;
-  content.innerHTML = html;
-  // nav anchors: scroll to section without fighting the version hash router
-  nav.querySelectorAll("a").forEach(a => a.addEventListener("click", e => {
-    e.preventDefault();
-    document.getElementById("reg-" + a.dataset.reg)?.scrollIntoView();
-  }));
-  content.addEventListener("click", e => {
-    const chip = e.target.closest(".chip");
-    if (!chip) return;
-    copyText(chip.dataset.k);
-    chip.classList.add("copied");
-    setTimeout(() => chip.classList.remove("copied"), 700);
-    showToast(`Copied ${chip.dataset.k}`);
-  });
-  updateStats(
-    current.registries.reduce((s, r) => s + r.keys.length, 0),
-    current.registries.reduce((s, r) => s + r.tagKeys.length, 0)
-  );
+  if (!current) return;
+  const m = query();
+  updateNav(m);
+  if (state.q && !state.scoped) renderResults(m); else renderRegistry(m);
 }
 
-function updateStats(keys, tags) {
-  $("stats").textContent = `${keys.toLocaleString()} keys · ${tags.toLocaleString()} tag keys`;
+const keyHtml = (k, hq) =>
+  `<button class="key" data-k="${esc(k)}"><span>${brk(hl(short(k), hq))}</span>${ICON.copy}</button>`;
+
+function tagHtml(reg, t, m) {
+  const values = reg.tagValues?.[t] || [];
+  const desc = descriptions[reg.id]?.[t] || "";
+  const open = state.open.has(t);
+  return `<div class="tag${open ? " open" : ""}" data-t="${esc(t)}"><div class="tag-row">` +
+    `<button class="exp" aria-expanded="${open}" aria-label="Show contents of #${esc(t)}">${ICON.chev}</button>` +
+    `<button class="tag-name" data-k="#${esc(t)}"><span>${brk(hl("#" + short(t), m.hq))}</span>${ICON.copy}</button>` +
+    `<span class="desc">${hl(desc, m.q)}</span><span class="badge">${values.length}</span></div>` +
+    `<div class="tag-body">${open ? tagBody(reg, t) : ""}</div></div>`;
+}
+
+function tagBody(reg, t) {
+  const values = reg.tagValues?.[t] || [];
+  const desc = descriptions[reg.id]?.[t];
+  return (desc ? `<p class="full">${esc(desc)}</p>` : "") + (values.length
+    ? `<div class="chips">${values.map(v =>
+        `<button class="chip${v.startsWith("#") ? " t" : ""}" data-k="${esc(v)}">${esc(short(v))}</button>`).join("")}</div>`
+    : `<p class="note">Empty in ${esc(current.version)}.</p>`);
+}
+
+function renderRegistry(m) {
+  const reg = findReg(state.reg);
+  const { keys, tags } = matches(reg, m);
+  const filtering = !!state.q;
+  if (!state.view || (state.view === "keys" && !reg.keys.length) || (state.view === "tags" && !reg.tagKeys.length)) {
+    state.view = reg.keys.length && (!filtering || keys.length || !tags.length) ? "keys" : "tags";
+  }
+  document.title = `${reg.name} · ${current.version} — Paper Registry Keys`;
+  const seg = (view, label, list, total) =>
+    `<button data-seg="${view}" aria-pressed="${state.view === view}"${total ? "" : " disabled"}>${label}<span class="c">${list.length.toLocaleString()}</span></button>`;
+  const list = state.view === "keys" ? keys : tags;
+  let html = `<div class="head"><div><h1>${esc(reg.name)}</h1>` +
+    `<div class="sub"><code>${esc(reg.id)}</code> · ${plural(reg.keys.length, "key")} · ${plural(reg.tagKeys.length, "tag")}</div></div>` +
+    `<div class="seg" role="group" aria-label="Show keys or tags">${seg("keys", "Keys", keys, reg.keys.length)}${seg("tags", "Tags", tags, reg.tagKeys.length)}</div></div>`;
+  if (filtering) {
+    html += `<div class="filter"><span>Filtered by <b>${esc(state.q)}</b> · ${plural(keys.length + tags.length, "match", "matches")}</span>` +
+      `<button class="link" data-act="back">Back to all results</button><button class="link" data-act="clear">Clear filter</button></div>`;
+  }
+  if (!list.length) {
+    html += `<p class="empty"><b>Nothing here</b>${filtering ? `No ${state.view} in ${esc(reg.name)} match “${esc(state.q)}”.` : `This registry has no ${state.view}.`}</p>`;
+  } else if (state.view === "keys") {
+    html += `<div class="keys">${list.map(k => keyHtml(k, m.hq)).join("")}</div>`;
+  } else {
+    html += `<div class="tags">${list.map(t => tagHtml(reg, t, m)).join("")}</div>`;
+  }
+  $("content").innerHTML = html;
+}
+
+function renderResults(m) {
+  document.title = `Search: ${state.q} · ${current.version} — Paper Registry Keys`;
+  let html = "", total = 0, groups = 0;
+  for (const reg of current.registries) {
+    const { keys, tags } = matches(reg, m);
+    const n = keys.length + tags.length;
+    if (!n) continue;
+    total += n; groups++;
+    // split the cap so a flood of key matches never hides tag matches entirely
+    const nTags = Math.min(tags.length, Math.max(8, GROUP_CAP - keys.length));
+    const nKeys = Math.min(keys.length, GROUP_CAP - nTags);
+    html += `<section class="group"><h2 class="group-h"><a href="#${esc(current.version)}/${esc(reg.id)}" data-show="${esc(reg.id)}">${esc(reg.name)}</a><span class="n">${n.toLocaleString()}</span></h2>`;
+    if (nKeys) html += `<div class="keys">${keys.slice(0, nKeys).map(k => keyHtml(k, m.hq)).join("")}</div>`;
+    if (nTags) html += `<div class="tags">${tags.slice(0, nTags).map(t => tagHtml(reg, t, m)).join("")}</div>`;
+    if (n > nKeys + nTags) html += `<button class="link more" data-show="${esc(reg.id)}">Show all ${n.toLocaleString()} in ${esc(reg.name)} →</button>`;
+    html += `</section>`;
+  }
+  $("content").innerHTML = total
+    ? `<p class="results-h">${plural(total, "match", "matches")} for “${esc(state.q)}” in ${plural(groups, "registry", "registries")} · ${esc(current.version)}</p>${html}`
+    : `<p class="empty"><b>No results for “${esc(state.q)}”</b>Nothing in ${esc(current.version)} matches. Try a shorter query or another version.</p>`;
+}
+
+function onContentClick(e) {
+  const t = e.target;
+  const copyEl = t.closest("[data-k]");
+  if (copyEl) {
+    copyText(copyEl.dataset.k);
+    copyEl.classList.add("copied");
+    setTimeout(() => copyEl.classList.remove("copied"), 700);
+    return showToast(copyEl.dataset.k);
+  }
+  const show = t.closest("[data-show]");
+  if (show) {
+    e.preventDefault();
+    const reg = findReg(show.dataset.show);
+    const { keys } = matches(reg, query());
+    state.reg = reg.id;
+    state.view = keys.length ? "keys" : "tags";
+    state.scoped = true;
+    state.open.clear();
+    window.scrollTo(0, 0);
+    return navigate(current.version, reg.id);
+  }
+  const seg = t.closest("[data-seg]");
+  if (seg) { state.view = seg.dataset.seg; return render(); }
+  const act = t.closest("[data-act]");
+  if (act) {
+    if (act.dataset.act === "clear") return clearSearch();
+    state.scoped = false;
+    return render();
+  }
+  const tagEl = t.closest(".tag");
+  if (tagEl && t.closest(".tag-row")) {
+    const key = tagEl.dataset.t;
+    const open = !tagEl.classList.contains("open");
+    open ? state.open.add(key) : state.open.delete(key);
+    const reg = findReg(state.q && !state.scoped ? tagEl.closest(".group").querySelector("[data-show]").dataset.show : state.reg);
+    const body = tagEl.querySelector(".tag-body");
+    if (open && !body.innerHTML) body.innerHTML = tagBody(reg, key);
+    tagEl.classList.toggle("open", open);
+    tagEl.querySelector(".exp").setAttribute("aria-expanded", open);
+  }
 }
 
 function copyText(text) {
@@ -315,48 +555,12 @@ function copyFallback(text) {
 }
 
 let toastTimer;
-function showToast(msg) {
+function showToast(key) {
   const t = $("toast");
-  t.textContent = msg;
+  t.innerHTML = `${ICON.check}<span>Copied</span><code>${esc(key)}</code>`;
   t.classList.add("show");
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => t.classList.remove("show"), 1400);
-}
-
-function applyFilter() {
-  const q = $("search").value.trim().toLowerCase();
-  const type = $("type").value;
-  let shownKeys = 0, shownTags = 0, anyShown = false;
-  for (const sectionEl of document.querySelectorAll("section.registry")) {
-    let sectionHas = false;
-    for (const entry of sectionEl.querySelectorAll(".entry")) {
-      const isTag = entry.querySelector(".chip").classList.contains("tag");
-      const typeOk = type === "all" || (type === "tags") === isTag;
-      const match = typeOk && (!q || entry.dataset.s.includes(q));
-      entry.classList.toggle("hidden", !match);
-      if (match) {
-        sectionHas = true;
-        isTag ? shownTags++ : shownKeys++;
-      }
-    }
-    // hide key/tag group headers whose entry lists are fully filtered out
-    sectionEl.querySelectorAll("h3").forEach(h => {
-      const list = h.nextElementSibling;
-      const hasVisible = list && list.querySelector(".entry:not(.hidden)");
-      h.classList.toggle("hidden", !hasVisible);
-      list?.classList.toggle("hidden", !hasVisible);
-    });
-    sectionEl.classList.toggle("hidden", !sectionHas);
-    const navLink = document.querySelector(`nav a[data-reg="${sectionEl.dataset.reg}"]`);
-    if (navLink) {
-      navLink.classList.toggle("hidden", !sectionHas);
-      navLink.querySelector(".n").textContent =
-        sectionEl.querySelectorAll(".entry:not(.hidden)").length;
-    }
-    anyShown = anyShown || sectionHas;
-  }
-  $("empty").classList.toggle("hidden", anyShown);
-  updateStats(shownKeys, shownTags);
 }
 
 init();
