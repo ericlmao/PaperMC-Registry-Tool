@@ -1,7 +1,12 @@
 [
   {
-    "version": "26.2",
+    "version": "26.3",
     "branch": "main",
+    "file": "data/26.3.json"
+  },
+  {
+    "version": "26.2",
+    "branch": "ver/26.2",
     "file": "data/26.2.json"
   },
   {

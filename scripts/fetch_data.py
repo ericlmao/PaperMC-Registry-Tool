@@ -19,7 +19,8 @@ KEYS_DIR = "paper-api/src/generated/java/io/papermc/paper/registry/keys"
 
 # (display version, git branch) — newest first. Each page uses only its own branch.
 VERSIONS = [
-    ("26.2", "main"),
+    ("26.3", "main"),
+    ("26.2", "ver/26.2"),
     ("26.1.2", "ver/26.1.2"),
     ("1.21.11", "ver/1.21.11"),
     ("1.21.10", "ver/1.21.10"),

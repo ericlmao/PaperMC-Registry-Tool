@@ -6,7 +6,8 @@ Each version's data comes only from its own Paper branch:
 
 | Version | Branch |
 |---------|--------|
-| 26.2 (latest, default) | `main` |
+| 26.3 (latest, default) | `main` |
+| 26.2 | `ver/26.2` |
 | 26.1.2 | `ver/26.1.2` |
 | 1.21.11 | `ver/1.21.11` |
 | 1.21.10 | `ver/1.21.10` |
@@ -17,7 +18,7 @@ Each version's data comes only from its own Paper branch:
 
 ## Usage
 
-Open the site, pick a version from the dropdown (defaults to the latest, 26.2), and browse or filter keys. Click any key to copy it. Versions are linkable via the URL hash, e.g. `#1.21.9`.
+Open the site, pick a version from the dropdown (defaults to the latest, 26.3), pick a registry from the sidebar, and switch between its keys and tag keys. Search covers every registry in the selected version (press `/` to focus it). Click any key to copy it; click a tag to see what it contains. Versions and registries are linkable via the URL hash, e.g. `#1.21.9/block_type`.
 
 ## Updating the data
 
